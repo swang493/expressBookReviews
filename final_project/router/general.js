@@ -20,77 +20,64 @@ public_users.post("/register", (req, res) => {
 // Get the book list available in the shop
 public_users.get('/', function (req, res) {
     let myPromise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve("Promise resolved")
-        }, 2000)
+        resolve(books)
     })
 
-    myPromise.then((successMessage) => {
-        console.log("callback " + successMessage)
-        res.send(JSON.stringify({ books }, null, 4));
+    myPromise.then((booksInfo) => {
+        res.send(JSON.stringify({ booksInfo }, null, 4));
     })
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn', function (req, res) {
     let myPromise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve("Promise resolved")
-        }, 2000)
-    })
-
-    myPromise.then((successMessage) => {
-        console.log("callback " + successMessage)
         let isbn = req.params.isbn;
-        res.send(books[isbn]);
-
+        if (books[isbn]) {
+            resolve(books[isbn]);
+        } else {
+            reject({ status: 404, message: `ISBN ${isbn} not found` });
+        }
     })
 
-    console.log("After calling promise");
+    myPromise.then((isbnInfo) => {
+        res.send(isbnInfo);
+    })
 });
 
 // Get book details based on author
 public_users.get('/author/:author', function (req, res) {
     let myPromise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve("Promise resolved ")
-        }, 2000)
+        resolve(books)
     })
 
-    myPromise.then((successMessage) => {
-        console.log("callback " + successMessage)
-        const authors = req.params.author;
-        const book_arrs = Object.values(books);
-        const book = book_arrs.filter((book) => book.author === authors);
-        res.status(200).json(book);
-    })
+    myPromise.then((books) => Object.values(books))
+    .then((book_arrs) => book_arrs.filter((book) => book.author === req.params.author))
+    .then((filtered) => res.status(200).json(filtered))
 });
 
 // Get all books based on title
 public_users.get('/title/:title', function (req, res) {
     let myPromise = new Promise((resolve, reject) => {
-        setTimeout(() => {
-            resolve("Promise resolved in getting book details based on title")
-        }, 2000)
+        resolve(books)
     })
 
-    //Console log before calling the promise
-    console.log("Before calling promise");
-    //Call the promise and wait for it to be resolved and then print a message.
-    myPromise.then((successMessage) => {
-        console.log("From Callback " + successMessage)
-        const title = req.params.title;
-        const book_arr = Object.values(books);
-        const book = book_arr.filter((book) => book.title === title);
-        res.status(200).json(book);
-    })
+    myPromise.then((books) => Object.values(books))
+    .then((book_arrs) => book_arrs.filter((book) => book.title === req.params.title))
+    .then((filtered) => res.status(200).json(filtered))
 });
 
 //  Get book review
 public_users.get('/review/:isbn', function (req, res) {
-    const book_isbn = req.params.isbn;
-    const book = books[book_isbn];
-    res.send(book.reviews);
+    let myPromise = new Promise((resolve, reject) => {
+        let isbn = req.params.isbn;
+        if (books[isbn]) {
+            resolve(books[isbn]);
+        } else {
+            reject({ status: 404, message: `ISBN ${isbn} not found` });
+        }
+    });
+
+    myPromise.then((book) => res.status(200).json(book.reviews))
 });
 
 module.exports.general = public_users;
